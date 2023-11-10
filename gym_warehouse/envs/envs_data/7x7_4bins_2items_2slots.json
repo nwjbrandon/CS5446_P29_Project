@@ -1,0 +1,137 @@
+{
+    "time_limit": 1200,
+    "num_rows": 7,
+    "num_cols": 7,
+    "num_bin_slots": 2,
+    "num_agent_slots": 2,
+    "num_items": 2,
+    "num_bins" : 4,
+    "rewards": {
+        "completion": 1,
+        "success": 0,
+        "illegal-action": 0,
+        "default": 0
+    },
+    "agent": {
+        "position": [3, 4],
+        "status": [0,0]
+    },
+    "staging_in_area": {
+        "position": [2, 0],
+        "status": [0,0],
+        "access_spots": [
+            [2, 1]
+        ]
+    },
+    "staging_out_area": {
+        "position": [4, 0],
+        "status": [0,0],
+        "access_spots": [
+            [4, 1]
+        ]
+    },
+    "bins": [
+        {
+            "position": [0, 3],
+            "status": [0,0],
+            "access_spots": [
+                [1, 3]
+            ]
+        },
+        {
+            "position": [0, 5],
+            "status": [0,0],
+            "access_spots": [
+                [1, 5]
+            ]
+        },
+        {
+            "position": [6, 3],
+            "status": [0,0],
+            "access_spots": [
+                [5, 3]
+            ]
+        },
+        {
+            "position": [6, 5],
+            "status": [0,0],
+            "access_spots": [
+                [5, 5]
+            ]
+        }
+    ],
+    "obstacles": [
+        {
+            "position": [0, 0],
+            "status": []
+        },
+        {
+            "position": [0, 1],
+            "status": []
+        },
+        {
+            "position": [0, 2],
+            "status": []
+        },
+        {
+            "position": [0, 4],
+            "status": []
+        },
+        {
+            "position": [0, 6],
+            "status": []
+        },
+        {
+            "position": [1, 0],
+            "status": []
+        },
+        {
+            "position": [1, 6],
+            "status": []
+        },
+        {
+            "position": [2, 6],
+            "status": []
+        },
+        {
+            "position": [3, 0],
+            "status": []
+        },
+        {
+            "position": [3, 6],
+            "status": []
+        },
+        {
+            "position": [4, 6],
+            "status": []
+        },
+        {
+            "position": [5, 0],
+            "status": []
+        },
+        {
+            "position": [5, 6],
+            "status": []
+        },
+        {
+            "position": [6, 0],
+            "status": []
+        },
+        {
+            "position": [6, 1],
+            "status": []
+        },
+        {
+            "position": [6, 2],
+            "status": []
+        },
+        {
+            "position": [6, 4],
+            "status": []
+        },
+        {
+            "position": [6, 6],
+            "status": []
+        }
+    ]
+}

@@ -1,0 +1,7 @@
+__pycache__/
+Plots/
+
+*.mp4
+*.gif
+*.PNG
+*.zip
