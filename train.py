@@ -36,7 +36,7 @@ models = {
     },
 }
 
-model_name = "ppo2"
+model_name = "dqn"
 save_freq = 50000
 ckpt_fpath = f"./models/{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)

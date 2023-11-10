@@ -70,8 +70,8 @@ class WarehouseRenderer:
         self.state = np.array([])
         self.state_history = []
 
-        pathlib.Path("./Surface").mkdir(exist_ok=True)
-        old_frames = "./Surface/surface_*.PNG"
+        pathlib.Path("./simulation").mkdir(exist_ok=True)
+        old_frames = "./simulation/surface_*.png"
         for frame in glob.glob(old_frames):
             os.remove(frame)
         self.surface_index = 0
@@ -98,23 +98,24 @@ class WarehouseRenderer:
         # Save surfaces as images
         surface = pygame.display.get_surface()
         pygame.image.save(
-            surface, "Surface/surface_" + str(self.surface_index) + ".PNG"
+            surface, "simulation/surface_" + str(self.surface_index) + ".png"
         )
         self.surface_index += 1
 
-    def save_as_gif(self, fp_out="./Surface/animation.gif", sec_per_frame=0.5):
+    def save_as_gif(self, fp_out="./simulation/animation.gif", sec_per_frame=0.5):
         """
         Save Interaction between agent and wh as an animation in gif format
         """
 
-        fp_in = "./Surface/surface_*.PNG"
+        fp_in = "./simulation/surface_*.png"
         imgs = []
         file_number = []
 
         for frame in glob.glob(fp_in):
             img = Image.open(frame)
             imgs.append(img)
-            file_number.append(img.filename[18:-4])
+            idx = img.filename.split("_")[-1].split(".")[0]
+            file_number.append(idx)
 
         index = np.asarray(file_number).astype(int).argsort()
         ordered_imgs = [imgs[i] for i in index]
@@ -135,7 +136,7 @@ class WarehouseRenderer:
         Save Interaction between agent and wh as a video in mp4 format
         """
 
-        path_in = "./Surface/"
+        path_in = "./simulation/"
         fps = 1 // sec_per_frame
 
         files = []
@@ -143,7 +144,7 @@ class WarehouseRenderer:
         file_number = []
 
         for f in os.listdir(path_in):
-            if isfile(join(path_in, f)) and ".PNG" in f:
+            if isfile(join(path_in, f)) and ".png" in f:
                 files.append(f)
                 file_number.append(f[8:-4])
 
