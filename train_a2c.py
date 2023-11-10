@@ -4,12 +4,11 @@ import pathlib
 import time
 
 import gym
-from stable_baselines import DQN
+from stable_baselines import A2C, ACER, ACKTR, DDPG, DQN, GAIL, HER, PPO1, PPO2, SAC, TD3, TRPO
 from stable_baselines.common.callbacks import CallbackList, CheckpointCallback
 from stable_baselines.deepq.policies import FeedForwardPolicy
 
 from gym_warehouse.envs import WarehouseEnv
-# For diagnostic and _call_plotting
 from Utils.CostumCallBacks import PlotCallback as plotcallback
 
 os.environ["KMP_WARNINGS"] = "0"
@@ -34,17 +33,8 @@ pathlib.Path("./models/checkpoints").mkdir(exist_ok=True)
 env = WarehouseEnv("6x5_4bins_1item_1slot")
 # env = WarehouseEnv('7x7_4bins_2items_2binslots_1agentslots')
 
+model = DQN("MlpPolicy", env, verbose=1)
 
-model = DQN(
-    CustomDQNPolicy,
-    env,
-    verbose=1,
-    exploration_fraction=0.99,
-    exploration_initial_eps=1,
-    exploration_final_eps=0.1,
-    batch_size=32,
-    buffer_size=50000,
-)
 
 checkpoint_callback = CheckpointCallback(
     save_freq=50000, save_path="./models/checkpoints/", name_prefix=prefix
