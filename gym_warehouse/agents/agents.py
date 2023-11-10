@@ -9,5 +9,6 @@ class OmniscientAgent:
     An agent that knows about the internal state of the warehouse.
     Not implemented yet.
     """
+
     def __init__(self, env: warehouse_env.WarehouseEnv):
         self.env = env

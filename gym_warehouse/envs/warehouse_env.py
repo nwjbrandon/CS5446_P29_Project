@@ -1,21 +1,22 @@
 """
 A gym environment representing a chaotic warehouse.
 """
-import gym
-import os
-import json
-import numpy as np
-import random
-import time
-import sys
-from gym_warehouse.envs.warehouse_objects import (
-    Agent, Bin, StagingInArea, StagingOutArea, Obstacle
-)
-from gym_warehouse.envs.warehouse_renderer import WarehouseRenderer
-from .curiosity import Curiosity2
-#from .curiosity import Curiosity
-import torch.optim as optim
 import itertools
+import json
+import os
+import random
+import sys
+import time
+
+import gym
+import numpy as np
+# from .curiosity import Curiosity
+import torch.optim as optim
+
+from gym_warehouse.envs.warehouse_objects import Agent, Bin, Obstacle, StagingInArea, StagingOutArea
+from gym_warehouse.envs.warehouse_renderer import WarehouseRenderer
+
+from .curiosity import Curiosity2
 
 # Constants
 UP = 0
@@ -23,12 +24,7 @@ DOWN = 1
 LEFT = 2
 RIGHT = 3
 
-MOVE_DELTAS = {
-    UP: (-1, 0),
-    DOWN: (1, 0),
-    LEFT: (0, -1),
-    RIGHT: (0, 1)
-}
+MOVE_DELTAS = {UP: (-1, 0), DOWN: (1, 0), LEFT: (0, -1), RIGHT: (0, 1)}
 
 
 class WarehouseEnv(gym.Env):
@@ -42,38 +38,39 @@ class WarehouseEnv(gym.Env):
         There needs to be a file called 'envname.json' in the 'envs_data'
         subdirectory.
     """
-    def __init__(self, envname='warehouse', curiosity=False):
+
+    def __init__(self, envname="warehouse", curiosity=False):
         # Load specified environment from .json
         file_dir, _ = os.path.split(__file__)
-        path = os.path.join(file_dir, 'envs_data', f'{envname}.json')
+        path = os.path.join(file_dir, "envs_data", f"{envname}.json")
         with open(path) as f:
             data = json.load(f)
 
         # Warehouse parameters
-        self.num_rows = data['num_rows']
-        self.num_cols = data['num_cols']
-        self.num_items = data['num_items']
-        self.num_agent_slots = data['num_agent_slots']
-        self.num_bin_slots = data['num_bin_slots']
-        self.num_bins = data['num_bins']
-        self.rewards = data['rewards']
-        self.time_limit = data['time_limit']
+        self.num_rows = data["num_rows"]
+        self.num_cols = data["num_cols"]
+        self.num_items = data["num_items"]
+        self.num_agent_slots = data["num_agent_slots"]
+        self.num_bin_slots = data["num_bin_slots"]
+        self.num_bins = data["num_bins"]
+        self.rewards = data["rewards"]
+        self.time_limit = data["time_limit"]
         self.time_step = 0
         self.time_left = self.time_limit
 
         # Agent
-        self.agent = Agent(data['agent'])
+        self.agent = Agent(data["agent"])
 
         # Staging areas
-        self.staging_in_area = StagingInArea(data['staging_in_area'])
-        self.staging_out_area = StagingOutArea(data['staging_out_area'])
+        self.staging_in_area = StagingInArea(data["staging_in_area"])
+        self.staging_out_area = StagingOutArea(data["staging_out_area"])
 
         # Bins
-        self.bins = [Bin(bin_) for bin_ in data['bins']]
+        self.bins = [Bin(bin_) for bin_ in data["bins"]]
 
-        #Obstacles
+        # Obstacles
         # Store positions of obstacles in set for O(1) lookup
-        self.obstacles_only = [Obstacle(obst) for obst in data['obstacles']]
+        self.obstacles_only = [Obstacle(obst) for obst in data["obstacles"]]
         self.obstacles = {obst.position for obst in self.obstacles_only}
         for bin_ in self.bins:
             self.obstacles.add(bin_.position)
@@ -82,15 +79,16 @@ class WarehouseEnv(gym.Env):
 
         # Map access spots to containers for O(1) lookup
         self.container_map = {}
-        for container in self.bins + [self.staging_in_area,
-                                      self.staging_out_area]:
+        for container in self.bins + [self.staging_in_area, self.staging_out_area]:
             for spot in container.access_spots:
                 self.container_map[spot] = container
 
         # Action space
         self.num_actions = 4 + 2 * self.num_agent_slots * self.num_bin_slots
         self.action_space = gym.spaces.Discrete(self.num_actions)
-        self.observation_staging_areas = gym.spaces.MultiDiscrete([self.num_items + 1] * self.num_bin_slots)
+        self.observation_staging_areas = gym.spaces.MultiDiscrete(
+            [self.num_items + 1] * self.num_bin_slots
+        )
 
         # Observation space
         nvec = [self.num_rows, self.num_cols]
@@ -105,20 +103,22 @@ class WarehouseEnv(gym.Env):
         self.renderer = None
         self.reward = 0
         self.rewardCuriosity = 0
-        self.action = ''
+        self.action = ""
 
         # Video
         self.video = False
         self.video_filename = None
 
         self.done = False
-        #random warehouse
+        # random warehouse
         for bin_ in self.bins:
-            #bin_.reset()
+            # bin_.reset()
             bin_.status = self.observation_staging_areas.sample()
 
-        #list of valid spots for the agent
-        self.agent_valid_spots = set(itertools.product(range(0, self.num_rows), range(0, self.num_cols)))
+        # list of valid spots for the agent
+        self.agent_valid_spots = set(
+            itertools.product(range(0, self.num_rows), range(0, self.num_cols))
+        )
         self.agent_valid_spots -= self.obstacles
         self.agent_valid_spots = list(self.agent_valid_spots)
 
@@ -130,17 +130,17 @@ class WarehouseEnv(gym.Env):
 
         self.curiosity = curiosity
         if self.curiosity:
-            #Version 1 Curiosity (with sigmoid loss)
-            #self.curiosity_NN = Curiosity(input_size=len(self.state),output_size=len(self.state)-1,discrete_obs=nvec[:-1])
+            # Version 1 Curiosity (with sigmoid loss)
+            # self.curiosity_NN = Curiosity(input_size=len(self.state),output_size=len(self.state)-1,discrete_obs=nvec[:-1])
 
-            #Version 2 Curiosity (Multiclass classification, many softmax)
+            # Version 2 Curiosity (Multiclass classification, many softmax)
             curiosity_vec = np.append(nvec[:-1], self.num_actions)
             self.curiosity_NN = Curiosity2(curiosity_vec)
 
-            #self.optimizer = optim.RMSprop(self.curiosity_NN.curiosity_net.parameters())
+            # self.optimizer = optim.RMSprop(self.curiosity_NN.curiosity_net.parameters())
             self.optimizer = optim.Adam(self.curiosity_NN.curiosity_net.parameters())
 
-    def step(self, action, testing = False):
+    def step(self, action, testing=False):
         """
         Performs the action chosen by the agent and alters the state accordingly.
 
@@ -171,7 +171,7 @@ class WarehouseEnv(gym.Env):
         """
         # Throw exception if action is invalid
         if not self.action_space.contains(action):
-            message = f'Action must be int in [0, {self.action_space.n})'
+            message = f"Action must be int in [0, {self.action_space.n})"
             raise ValueError(message)
 
         reward = 0
@@ -187,11 +187,11 @@ class WarehouseEnv(gym.Env):
                 reward = self._put(agent_slot, bin_slot)
 
         # Update transactions randomly
-        #self._update_transactions()
+        # self._update_transactions()
 
         # Advance time
         self.time_step += 1
-        self.time_left -=1
+        self.time_left -= 1
 
         # Create return tuple
         obs = self._create_observation()
@@ -199,9 +199,9 @@ class WarehouseEnv(gym.Env):
         info = {}
         self.reward = reward
 
-        if self.time_step >= self.time_limit or self.reward >0:
-        #if self.time_step >= self.time_limit:
-            #print(self.time_step, self.time_left)
+        if self.time_step >= self.time_limit or self.reward > 0:
+            # if self.time_step >= self.time_limit:
+            # print(self.time_step, self.time_left)
             self.done = True
 
         # Save state
@@ -210,16 +210,21 @@ class WarehouseEnv(gym.Env):
 
         self.rewardCuriosity = 0
         if (testing == False) and (self.curiosity == True):
-            self.rewardCuriosity = self.curiosity_NN.train(current_state=self.state[:-1],next_state=obs[:-1], action=action, optimizer=self.optimizer)
+            self.rewardCuriosity = self.curiosity_NN.train(
+                current_state=self.state[:-1],
+                next_state=obs[:-1],
+                action=action,
+                optimizer=self.optimizer,
+            )
 
         self.state = obs
 
-        #if self.rewardCuriosity == 0:
-            #print("Curiosity_reward 0!")
+        # if self.rewardCuriosity == 0:
+        # print("Curiosity_reward 0!")
 
         return obs, self.reward + self.rewardCuriosity, self.done, info
 
-    def render(self, mode='human', sec_per_frame=0.5):
+    def render(self, mode="human", sec_per_frame=0.5):
         """
         Renders the environment in the desired mode.
 
@@ -229,7 +234,7 @@ class WarehouseEnv(gym.Env):
             Currently, only 'human' is supported, which will render using
             pygame.
         """
-        if mode == 'human':
+        if mode == "human":
             if self.renderer is None:
                 self.renderer = WarehouseRenderer(self)
             self.renderer.render()
@@ -237,7 +242,7 @@ class WarehouseEnv(gym.Env):
         else:
             super().render(mode=mode)
 
-    def reset(self, testing = False):
+    def reset(self, testing=False):
         """
         Resets the environment to its initial state and returns a fresh
         observation
@@ -257,7 +262,7 @@ class WarehouseEnv(gym.Env):
             self.staging_in_area.reset()
             self.staging_out_area.reset()
             for bin_ in self.bins:
-                #bin_.reset()
+                # bin_.reset()
                 bin_.status = self.observation_staging_areas.sample()
 
         self._update_transactions()
@@ -327,8 +332,8 @@ class WarehouseEnv(gym.Env):
             self.agent.position = (row, col)
 
         # Rendering
-        self.action = f'Move -> ({row}, {col})'
-        return self.rewards['default']
+        self.action = f"Move -> ({row}, {col})"
+        return self.rewards["default"]
 
     def _within_bounds(self, row, col):
         """
@@ -396,26 +401,26 @@ class WarehouseEnv(gym.Env):
         """
         # Check whether agent is in an access spot
         if self.agent.position not in self.container_map:
-            return self.rewards['default']
+            return self.rewards["default"]
 
         # Get container associated with the access spot
         container = self.container_map[self.agent.position]
 
         # Can't pick from staging-out area
         if container is self.staging_out_area:
-            return self.rewards['default']
+            return self.rewards["default"]
 
         # Try pick from container
         if not container.free(bin_slot) and self.agent.free(agent_slot):
             self.agent.put(agent_slot, container.pick(bin_slot))
             # Check we made progress on inbound transaction
             if container is self.staging_in_area:
-                return self.rewards['success']
+                return self.rewards["success"]
 
         # Render
-        self.action = f'Pick {agent_slot} <- {bin_slot}'
+        self.action = f"Pick {agent_slot} <- {bin_slot}"
 
-        return self.rewards['default']
+        return self.rewards["default"]
 
     def _put(self, agent_slot, bin_slot):
         """
@@ -435,43 +440,50 @@ class WarehouseEnv(gym.Env):
         """
         # Check whether agent is in an access spot
         if self.agent.position not in self.container_map:
-            return self.rewards['default']
+            return self.rewards["default"]
 
         # Get container associated with the access spot
         container = self.container_map[self.agent.position]
 
         # Can't put into staging-in area
         if container is self.staging_in_area:
-            return self.rewards['default']
+            return self.rewards["default"]
 
         # Can only put required items into staging-out area
         if container is self.staging_out_area:
             if container.requires(bin_slot, self.agent.status[agent_slot]):
                 container.put(bin_slot, self.agent.pick(agent_slot))
-                #return self.rewards['success']
-                #Check if transaction completed to give reward and generate a new one
-                if (np.sum(self.agent.status)==0 and np.sum(self.staging_in_area.status)==0 and
-                        np.sum(self.staging_out_area.status)==0):
+                # return self.rewards['success']
+                # Check if transaction completed to give reward and generate a new one
+                if (
+                    np.sum(self.agent.status) == 0
+                    and np.sum(self.staging_in_area.status) == 0
+                    and np.sum(self.staging_out_area.status) == 0
+                ):
 
-                    #self._update_transactions()
-                    return self.rewards['completion'] #* self.time_left / self.time_limit
+                    # self._update_transactions()
+                    return self.rewards[
+                        "completion"
+                    ]  # * self.time_left / self.time_limit
 
-            return self.rewards['default']
-
+            return self.rewards["default"]
 
         # Try to put into regular bin
         if container.free(bin_slot) and not self.agent.free(agent_slot):
             container.put(bin_slot, self.agent.pick(agent_slot))
-            #check if staging in, staging out and agent are empty to generate new transaction
-            if (np.sum(self.agent.status) == 0 and np.sum(self.staging_in_area.status) == 0 and
-                    np.sum(self.staging_out_area.status) == 0):
-                #self._update_transactions()
-                return self.rewards['completion'] #* self.time_left / self.time_limit
+            # check if staging in, staging out and agent are empty to generate new transaction
+            if (
+                np.sum(self.agent.status) == 0
+                and np.sum(self.staging_in_area.status) == 0
+                and np.sum(self.staging_out_area.status) == 0
+            ):
+                # self._update_transactions()
+                return self.rewards["completion"]  # * self.time_left / self.time_limit
 
         # Render
-        self.action = f'Put {agent_slot} -> {bin_slot}'
+        self.action = f"Put {agent_slot} -> {bin_slot}"
 
-        return self.rewards['default']
+        return self.rewards["default"]
 
     def _update_transactions(self, p=0.5):
         """
@@ -491,7 +503,7 @@ class WarehouseEnv(gym.Env):
         bin_items = np.array([])
         for bin_ in self.bins:
             bin_items = np.append(bin_items, bin_.status)
-        #bin_items = np.append(bin_items,self.agent.status)
+        # bin_items = np.append(bin_items,self.agent.status)
         bin_items = bin_items.flatten()
 
         y = lambda x: True if x != 0 else False
@@ -500,7 +512,7 @@ class WarehouseEnv(gym.Env):
         warehouse_full = all(bin_items_bool)
 
         emptyslots = self.num_bin_slots * self.num_bins - np.sum(bin_items_bool)
-        #if emptyslots ==0:
+        # if emptyslots ==0:
         #    warehouse_full = True
 
         if (flip < p or np.sum(bin_items) == 0) and not (warehouse_full):
@@ -509,15 +521,18 @@ class WarehouseEnv(gym.Env):
 
                 # verifies that the number of slots is enough for the incoming in transaction
                 sampleslots = np.sum([y(i) for i in self.staging_in_area.status])
-                if np.sum(self.staging_in_area.status) != 0 and emptyslots >= sampleslots:
+                if (
+                    np.sum(self.staging_in_area.status) != 0
+                    and emptyslots >= sampleslots
+                ):
                     break
 
         else:
-            missing_items = True;
+            missing_items = True
             bin_counts = np.zeros(self.num_items + 1)
             for i in bin_items:
                 bin_counts[int(i)] += 1
-            while (np.sum(self.staging_out_area.status) == 0 or missing_items):
+            while np.sum(self.staging_out_area.status) == 0 or missing_items:
                 self.staging_out_area.status = self.observation_staging_areas.sample()
                 # checking that an outbound transaction always has the "required" items in bins.
                 staging_counts = np.zeros(self.num_items + 1)
@@ -552,10 +567,13 @@ class WarehouseEnv(gym.Env):
         if self.video:
             self.renderer.save_video()
         else:
-            print("init_video has to be called before in order to save video; "
-                  "aborting")
+            print(
+                "init_video has to be called before in order to save video; " "aborting"
+            )
 
-    def save_as_gif(self, filename_prefix = 'quick_test', save_dir = './', sec_per_frame=0.5):
+    def save_as_gif(
+        self, filename_prefix="quick_test", save_dir="./", sec_per_frame=0.5
+    ):
         """
         Save rendered environment as an animation in gif format.
 
@@ -566,14 +584,18 @@ class WarehouseEnv(gym.Env):
             added automatically.
         """
 
-        self.gif_filename = save_dir+'/'+filename_prefix+"_agent_interaction.gif"
+        self.gif_filename = save_dir + "/" + filename_prefix + "_agent_interaction.gif"
 
         if self.renderer:
             self.renderer.save_as_gif(self.gif_filename, sec_per_frame)
         else:
-            print("env.render(mode='human') has to be called before in order to save gif;\naborting...")
+            print(
+                "env.render(mode='human') has to be called before in order to save gif;\naborting..."
+            )
 
-    def save_as_mp4(self, filename_prefix = 'quick_test', save_dir = './', sec_per_frame=0.5):
+    def save_as_mp4(
+        self, filename_prefix="quick_test", save_dir="./", sec_per_frame=0.5
+    ):
         """
         Save rendered environment as an mp4 video.
 
@@ -584,9 +606,11 @@ class WarehouseEnv(gym.Env):
             added automatically.
         """
 
-        self.mp4_filename = save_dir+'/'+filename_prefix+"_agent_interaction.mp4"
+        self.mp4_filename = save_dir + "/" + filename_prefix + "_agent_interaction.mp4"
 
         if self.renderer:
             self.renderer.save_as_mp4(self.mp4_filename, sec_per_frame)
         else:
-            print("env.render(mode='human') has to be called before in order to save mp4;\naborting...")
+            print(
+                "env.render(mode='human') has to be called before in order to save mp4;\naborting..."
+            )

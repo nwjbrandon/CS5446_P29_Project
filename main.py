@@ -3,7 +3,6 @@ https://github.com/Stable-Baselines-Team/rl-colab-notebooks/blob/sb3/dqn_sb3.ipy
 """
 
 import gymnasium as gym
-
 from stable_baselines3 import DQN
 
 env = gym.make("MountainCar-v0", render_mode="rgb_array")

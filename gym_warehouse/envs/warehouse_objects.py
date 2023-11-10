@@ -4,7 +4,6 @@ Classes for objects in the warehouse, i.e. agents, bins, and staging areas.
 import copy
 import random
 
-
 NO_ITEM = 0
 
 
@@ -19,9 +18,10 @@ class WarehouseObject:
         A dictionary containining the information about the object, as it is
         stored in the json file. Must have 'position' and 'status' keys.
     """
+
     def __init__(self, data):
-        self.position = tuple(data['position'])
-        self.status = data['status']
+        self.position = tuple(data["position"])
+        self.status = data["status"]
         self.initial_position = copy.copy(self.position)
         self.initial_status = copy.copy(self.status)
 
@@ -95,6 +95,7 @@ class Agent(WarehouseObject):
     """
     The agent.
     """
+
     pass
 
 
@@ -110,20 +111,25 @@ class Bin(WarehouseObject):
         stored in the json file. Must have 'position', 'status' and
         'access_spots' keys.
     """
+
     def __init__(self, data):
         super().__init__(data)
-        self.access_spots = [tuple(pos) for pos in data['access_spots']]
+        self.access_spots = [tuple(pos) for pos in data["access_spots"]]
+
 
 class Obstacle(WarehouseObject):
     """
     An obstacle.
     """
+
     pass
+
 
 class StagingInArea(Bin):
     """
     The staging-in area.
     """
+
     pass
 
 
@@ -133,6 +139,7 @@ class StagingOutArea(Bin):
     The status variable doesn't represent the current contents of the bin,
     but rather the desired contents of the bin.
     """
+
     def put(self, slot, item):
         """
         Putting into the staging-out area works differently than putting into
