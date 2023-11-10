@@ -1,31 +1,62 @@
 import os
 import pathlib
 
-from stable_baselines import A2C, ACER, ACKTR, DDPG, DQN, GAIL, HER, PPO1, PPO2, SAC, TD3, TRPO
+from stable_baselines import A2C, ACER, ACKTR, DQN, PPO2
 from stable_baselines.common.callbacks import CallbackList, CheckpointCallback
 
 from gym_warehouse.envs import WarehouseEnv
 
 os.environ["KMP_WARNINGS"] = "0"
 
+models = {
+    "a2c": {
+        "model": A2C,
+        "total_timesteps": 250000,
+        "config": {},
+    },
+    "acer": {
+        "model": ACER,
+        "total_timesteps": 250000,
+        "config": {},
+    },
+    "acktr": {
+        "model": ACKTR,
+        "total_timesteps": 250000,
+        "config": {},
+    },
+    "dqn": {
+        "model": DQN,
+        "total_timesteps": 250000,
+        "config": {},
+    },
+    "ppo2": {
+        "model": PPO2,
+        "total_timesteps": 1000000,
+        "config": {},
+    },
+}
+
 model_name = "dqn"
+save_freq = 50000
 ckpt_fpath = f"./models/{model_name}"
 prefix = f"{model_name}"
-total_timesteps = 250000
-save_freq = 50000
-
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
 
-
+# Callbacks
 checkpoint_callback = CheckpointCallback(
     save_freq=save_freq, save_path=ckpt_fpath, name_prefix=prefix
 )
 callbacks = CallbackList([checkpoint_callback])
 
+# Create model and environment
+RLModel = models[model_name]["model"]
+total_timesteps = models[model_name]["total_timesteps"]
+config = models[model_name]["config"]
+
 env = WarehouseEnv("6x5_4bins_1item_1slot")
-model = DQN("MlpPolicy", env, verbose=1)
+model = RLModel("MlpPolicy", env, verbose=1, **config)
 
-
+# Train Model
 model.learn(total_timesteps=total_timesteps, callback=callbacks)
 model.save("./models/" + prefix)
 
