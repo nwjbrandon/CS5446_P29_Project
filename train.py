@@ -36,15 +36,14 @@ models = {
     },
 }
 
-model_name = "dqn"
+model_name = "ppo2"
 save_freq = 50000
 ckpt_fpath = f"./models/{model_name}"
-prefix = f"{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
 
 # Callbacks
 checkpoint_callback = CheckpointCallback(
-    save_freq=save_freq, save_path=ckpt_fpath, name_prefix=prefix
+    save_freq=save_freq, save_path=ckpt_fpath, name_prefix=model_name
 )
 callbacks = CallbackList([checkpoint_callback])
 
@@ -58,7 +57,7 @@ model = RLModel("MlpPolicy", env, verbose=1, **config)
 
 # Train Model
 model.learn(total_timesteps=total_timesteps, callback=callbacks)
-model.save("./models/" + prefix)
+model.save(f"{ckpt_fpath}/best")
 
 
 obs = env.reset()
@@ -73,5 +72,5 @@ for step in range(n_steps):
         print("Goal Reached! Reward: ", reward)
         env.reset(testing=True)
 
-env.save_as_gif(filename_prefix=prefix, save_dir="./", sec_per_frame=0.6)
-env.save_as_mp4(filename_prefix=prefix, save_dir="./", sec_per_frame=0.3)
+env.save_as_gif(filename_prefix=model_name, save_dir=ckpt_fpath, sec_per_frame=0.6)
+env.save_as_mp4(filename_prefix=model_name, save_dir=ckpt_fpath, sec_per_frame=0.3)
