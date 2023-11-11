@@ -8,7 +8,7 @@ from gym_warehouse.envs import WarehouseEnv
 
 os.environ["KMP_WARNINGS"] = "0"
 
-model_name = "acer"
+model_name = "acktr"
 save_freq = 50000
 ckpt_fpath = f"./models/{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
