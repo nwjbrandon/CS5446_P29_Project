@@ -30,7 +30,8 @@ eval_callback = EvalCallback(
     env,
     best_model_save_path=ckpt_fpath,
     log_path=ckpt_fpath,
-    eval_freq=50000,
+    n_eval_episodes=30,
+    eval_freq=10000,
     deterministic=True,
     render=False,
 )
