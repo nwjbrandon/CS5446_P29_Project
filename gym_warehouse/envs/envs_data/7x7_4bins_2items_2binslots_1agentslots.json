@@ -1,5 +1,5 @@
 {
-    "time_limit": 128,
+    "time_limit": 1200,
     "num_rows": 7,
     "num_cols": 7,
     "num_bin_slots": 2,
@@ -8,9 +8,9 @@
     "num_bins" : 4,
     "rewards": {
         "completion": 1,
-        "success": 0.1,
-        "illegal-action": -0.1,
-        "default": -0.01
+        "success": 0,
+        "illegal-action": 0,
+        "default": 0
     },
     "agent": {
         "position": [3, 4],
