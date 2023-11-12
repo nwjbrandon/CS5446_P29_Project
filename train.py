@@ -12,7 +12,7 @@ os.environ["KMP_WARNINGS"] = "0"
 np.random.seed(42)
 
 env_name = "6x5_4bins_1item_1slot"
-model_name = "ppo2"
+model_name = "dqn"
 save_freq = 5000
 eval_freq = 5000
 n_eval_episodes = 30
