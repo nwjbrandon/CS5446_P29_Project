@@ -14,7 +14,7 @@ save_freq = 10000
 eval_freq = 10000
 n_eval_episodes = 30
 ckpt_fpath = f"./models/{env_name}/{model_name}"
-pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
+pathlib.Path(ckpt_fpath).mkdir(exist_ok=True, parents=True)
 
 # Get config
 RLModel = model_config[model_name]["model"]
