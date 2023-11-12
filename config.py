@@ -3,7 +3,7 @@ from stable_baselines import A2C, ACER, ACKTR, DQN, PPO2
 model_config = {
     "a2c": {
         "model": A2C,
-        "total_timesteps": 1000000,
+        "total_timesteps": 2000000,
         "config": {
             "gamma": 0.99,
             "n_steps": 5,
@@ -24,7 +24,7 @@ model_config = {
     },
     "acer": {
         "model": ACER,
-        "total_timesteps": 1000000,
+        "total_timesteps": 2000000,
         "config": {
             "gamma": 0.99,
             "n_steps": 20,
@@ -53,7 +53,7 @@ model_config = {
     },
     "acktr": {
         "model": ACKTR,
-        "total_timesteps": 1000000,
+        "total_timesteps": 2000000,
         "config": {
             "gamma": 0.99,
             "nprocs": None,
@@ -78,7 +78,7 @@ model_config = {
     },
     "dqn": {
         "model": DQN,
-        "total_timesteps": 1000000,
+        "total_timesteps": 2000000,
         "config": {
             "gamma": 0.99,
             "learning_rate": 0.0005,
@@ -107,7 +107,7 @@ model_config = {
     },
     "ppo2": {
         "model": PPO2,
-        "total_timesteps": 1000000,
+        "total_timesteps": 2000000,
         "config": {
             "gamma": 0.99,
             "n_steps": 128,
