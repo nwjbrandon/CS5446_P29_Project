@@ -9,7 +9,9 @@ from gym_warehouse.envs import WarehouseEnv
 os.environ["KMP_WARNINGS"] = "0"
 
 model_name = "ppo2"
-save_freq = 50000
+save_freq = 10000
+eval_freq = 10000
+n_eval_episodes = 30
 ckpt_fpath = f"./models/{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
 
@@ -30,8 +32,8 @@ eval_callback = EvalCallback(
     env,
     best_model_save_path=ckpt_fpath,
     log_path=ckpt_fpath,
-    n_eval_episodes=30,
-    eval_freq=10000,
+    n_eval_episodes=n_eval_episodes,
+    eval_freq=eval_freq,
     deterministic=True,
     render=False,
 )
