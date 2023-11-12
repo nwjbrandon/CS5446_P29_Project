@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+import numpy as np
 from stable_baselines.common.callbacks import CallbackList, CheckpointCallback, EvalCallback
 
 from config import model_config
@@ -8,10 +9,12 @@ from gym_warehouse.envs import WarehouseEnv
 
 os.environ["KMP_WARNINGS"] = "0"
 
+np.random.seed(42)
+
 env_name = "6x5_4bins_1item_1slot"
 model_name = "ppo2"
-save_freq = 10000
-eval_freq = 10000
+save_freq = 5000
+eval_freq = 5000
 n_eval_episodes = 30
 ckpt_fpath = f"./models/{env_name}/{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True, parents=True)
