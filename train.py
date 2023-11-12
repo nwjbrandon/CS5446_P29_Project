@@ -8,11 +8,12 @@ from gym_warehouse.envs import WarehouseEnv
 
 os.environ["KMP_WARNINGS"] = "0"
 
+env_name = "6x5_4bins_1item_1slot"
 model_name = "ppo2"
 save_freq = 10000
 eval_freq = 10000
 n_eval_episodes = 30
-ckpt_fpath = f"./models/{model_name}"
+ckpt_fpath = f"./models/{env_name}/{model_name}"
 pathlib.Path(ckpt_fpath).mkdir(exist_ok=True)
 
 # Get config
@@ -21,7 +22,7 @@ total_timesteps = model_config[model_name]["total_timesteps"]
 config = model_config[model_name]["config"]
 
 # Create model and environment
-env = WarehouseEnv("6x5_4bins_1item_1slot")
+env = WarehouseEnv(env_name)
 model = RLModel("MlpPolicy", env, verbose=1, **config)
 
 # Create callbacks
@@ -41,9 +42,9 @@ callbacks = CallbackList([checkpoint_callback, eval_callback])
 
 # Train Model
 model.learn(total_timesteps=total_timesteps, callback=callbacks)
-model.save(f"{ckpt_fpath}/last")
+model.save(f"{ckpt_fpath}/last_model")
 
-
+# Evaluate Model
 obs = env.reset()
 n_steps = 300
 total = 0
